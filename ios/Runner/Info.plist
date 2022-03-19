@@ -49,8 +49,8 @@
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<value>So I can track you!</value>
+	<string>So I can track you!</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<value>So I can track you at all times!</value>
+	<string>So I can track you at all times!</string>
 </dict>
 </plist>

@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 51;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -80,7 +80,6 @@
 				23D583D7E438F954AB9AA9B4 /* Pods-Runner.profile-development.xcconfig */,
 				1E748AD31B5ADF9B0A6D4317 /* Pods-Runner.profile-staging.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -387,6 +386,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = VQSSA4T7UJ;
 				ENABLE_BITCODE = NO;
 				FLAVOR_APP_NAME = "Geo Flutter Fire";
 				INFOPLIST_FILE = Runner/Info.plist;
@@ -394,7 +394,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.example.verygoodcore.geo-flutter-fire";
+				PRODUCT_BUNDLE_IDENTIFIER = com.mezops.geo.flutter.fire;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
@@ -518,6 +518,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = VQSSA4T7UJ;
 				ENABLE_BITCODE = NO;
 				FLAVOR_APP_NAME = "Geo Flutter Fire";
 				INFOPLIST_FILE = Runner/Info.plist;
@@ -525,7 +526,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.example.verygoodcore.geo-flutter-fire";
+				PRODUCT_BUNDLE_IDENTIFIER = com.mezops.geo.flutter.fire;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -541,6 +542,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = VQSSA4T7UJ;
 				ENABLE_BITCODE = NO;
 				FLAVOR_APP_NAME = "Geo Flutter Fire";
 				INFOPLIST_FILE = Runner/Info.plist;
@@ -548,7 +550,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.example.verygoodcore.geo-flutter-fire";
+				PRODUCT_BUNDLE_IDENTIFIER = com.mezops.geo.flutter.fire;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
@@ -619,6 +621,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-dev";
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = VQSSA4T7UJ;
 				ENABLE_BITCODE = NO;
 				FLAVOR_APP_NAME = "[DEV] Geo Flutter Fire";
 				INFOPLIST_FILE = Runner/Info.plist;
@@ -626,7 +629,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.example.verygoodcore.geo-flutter-fire.dev";
+				PRODUCT_BUNDLE_IDENTIFIER = com.mezops.geo.flutter.fire;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -695,6 +698,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-dev";
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = VQSSA4T7UJ;
 				ENABLE_BITCODE = NO;
 				FLAVOR_APP_NAME = "[DEV] Geo Flutter Fire";
 				INFOPLIST_FILE = Runner/Info.plist;
@@ -702,7 +706,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.example.verygoodcore.geo-flutter-fire.dev";
+				PRODUCT_BUNDLE_IDENTIFIER = com.mezops.geo.flutter.fire;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
@@ -768,6 +772,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-dev";
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = VQSSA4T7UJ;
 				ENABLE_BITCODE = NO;
 				FLAVOR_APP_NAME = "[DEV] Geo Flutter Fire";
 				INFOPLIST_FILE = Runner/Info.plist;
@@ -775,7 +780,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.example.verygoodcore.geo-flutter-fire.dev";
+				PRODUCT_BUNDLE_IDENTIFIER = com.mezops.geo.flutter.fire;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
@@ -846,6 +851,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-stg";
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = VQSSA4T7UJ;
 				ENABLE_BITCODE = NO;
 				FLAVOR_APP_NAME = "[STG] Geo Flutter Fire";
 				INFOPLIST_FILE = Runner/Info.plist;
@@ -922,6 +928,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-stg";
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = VQSSA4T7UJ;
 				ENABLE_BITCODE = NO;
 				FLAVOR_APP_NAME = "[STG] Geo Flutter Fire";
 				INFOPLIST_FILE = Runner/Info.plist;
@@ -995,6 +1002,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-stg";
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = VQSSA4T7UJ;
 				ENABLE_BITCODE = NO;
 				FLAVOR_APP_NAME = "[STG] Geo Flutter Fire";
 				INFOPLIST_FILE = Runner/Info.plist;
