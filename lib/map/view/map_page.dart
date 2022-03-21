@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -33,33 +34,53 @@ class _FireMapState extends State<FireMap> {
   FirebaseFirestore firestore = FirebaseFirestore.instance;
   Geoflutterfire geo = Geoflutterfire();
 
-  BehaviorSubject<double> radius = BehaviorSubject();
+  BehaviorSubject<double> radius = BehaviorSubject.seeded(5);
+
+  double? latitude;
+  double? longitude;
 
   late Stream<dynamic> query;
   late StreamSubscription subscription;
 
   @override
+  void initState() {
+    _getUserLocation();
+
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    print(markers.length);
     return Stack(
       children: [
-        GoogleMap(
-          initialCameraPosition: const CameraPosition(
-            target: LatLng(24.142, -110.321),
-            zoom: 15,
-          ),
-          onMapCreated: _onMapCreated,
-          myLocationEnabled: true,
-          mapType: MapType.hybrid,
-          onCameraMove: _onCameraMove,
-          markers: markers,
-        ),
+        if ((latitude != null) & (longitude != null))
+          GoogleMap(
+            initialCameraPosition: CameraPosition(
+              target: LatLng(latitude!, longitude!),
+              zoom: 15,
+            ),
+            onMapCreated: _onMapCreated,
+            myLocationEnabled: true,
+            mapType: MapType.hybrid,
+            markers: markers,
+            polygons: _getPolygons(),
+          )
+        else
+          Container(),
         Positioned(
           bottom: 50,
           left: 10,
-          child: TextButton(
+          child: FloatingActionButton(
             onPressed: _addGeoPoint,
-            child: const Icon(Icons.pin_drop, color: Colors.white),
+            child: const Icon(Icons.add),
+          ),
+        ),
+        Positioned(
+          bottom: 50,
+          left: 70,
+          child: FloatingActionButton(
+            onPressed: _removeAllMarkers,
+            child: const Icon(Icons.delete),
           ),
         ),
         Positioned(
@@ -69,31 +90,62 @@ class _FireMapState extends State<FireMap> {
             activeColor: Colors.green,
             inactiveColor: Colors.green.withOpacity(0.2),
             divisions: 4,
-            value: radius.hasValue ? radius.value : 100,
+            value: radius.value,
             onChanged: _updateQuery,
-            min: 100,
-            max: 500,
-            label: 'Radius ${radius.hasValue ? radius.value : 100}km',
+            min: 1,
+            max: 20,
+            label: 'Radius ${radius.value}km',
           ),
         ),
       ],
     );
   }
 
+  Future<void> _getUserLocation() async {
+    final _userLocation = await location.getLocation();
+
+    setState(() {
+      latitude = _userLocation.latitude;
+      longitude = _userLocation.longitude;
+    });
+  }
+
   void _onMapCreated(GoogleMapController controller) {
+    location.onLocationChanged.listen(
+      (locationData) {
+        final userLocation = LatLng(
+          locationData.latitude!,
+          locationData.longitude!,
+        );
+        mapController!.animateCamera(
+          CameraUpdate.newCameraPosition(
+            CameraPosition(
+              target: userLocation,
+              zoom: 15,
+            ),
+          ),
+        );
+      },
+    );
+
     _startQuery();
+
     setState(() {
       mapController = controller;
     });
   }
 
-  void _onCameraMove(CameraPosition position) {}
-
   Future<DocumentReference> _addGeoPoint() async {
-    final position = await location.getLocation();
+    final random = Random();
+    final position = await mapController!.getLatLng(
+      ScreenCoordinate(
+        x: random.nextInt(1000),
+        y: random.nextInt(1000),
+      ),
+    );
     final point = geo.point(
-      latitude: position.latitude!,
-      longitude: position.longitude!,
+      latitude: position.latitude,
+      longitude: position.longitude,
     );
     return firestore.collection('locations').add(<String, dynamic>{
       'point': point.data,
@@ -102,10 +154,7 @@ class _FireMapState extends State<FireMap> {
   }
 
   void _updateMarkers(List<DocumentSnapshot<Map<String, dynamic>>> documents) {
-    print('updating markers');
-
     setState(() {
-      print('setting state');
       markers = documents
           .map(
             (document) => Marker(
@@ -152,5 +201,32 @@ class _FireMapState extends State<FireMap> {
   void dispose() {
     subscription.cancel();
     super.dispose();
+  }
+
+  void _removeAllMarkers() {
+    final ref = firestore.collection('locations');
+
+    ref.get().then((snapshot) {
+      for (final doc in snapshot.docs) {
+        doc.reference.delete();
+      }
+    });
+  }
+
+  Set<Polygon> _getPolygons() {
+    return <Polygon>{
+      Polygon(
+        polygonId: const PolygonId('polygon'),
+        points: <LatLng>[
+          LatLng(latitude!, longitude!),
+          LatLng(latitude! + 0.001, longitude!),
+          LatLng(latitude! + 0.001, longitude! + 0.001),
+          LatLng(latitude!, longitude! + 0.001),
+        ],
+        strokeColor: Colors.green,
+        strokeWidth: 5,
+        fillColor: Colors.green.withOpacity(0.2),
+      ),
+    };
   }
 }
