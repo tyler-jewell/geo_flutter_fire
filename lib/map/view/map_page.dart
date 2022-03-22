@@ -1,12 +1,10 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
-import 'package:rxdart/rxdart.dart';
 
 class MapPage extends StatelessWidget {
   const MapPage({Key? key}) : super(key: key);
@@ -28,19 +26,16 @@ class FireMap extends StatefulWidget {
 
 class _FireMapState extends State<FireMap> {
   GoogleMapController? mapController;
-  Set<Marker> markers = <Marker>{};
   Location location = Location();
+  Set<Polygon> polygons = <Polygon>{};
 
   FirebaseFirestore firestore = FirebaseFirestore.instance;
   Geoflutterfire geo = Geoflutterfire();
 
-  BehaviorSubject<double> radius = BehaviorSubject.seeded(5);
-
   double? latitude;
   double? longitude;
 
-  late Stream<dynamic> query;
-  late StreamSubscription subscription;
+  bool addingPolygon = false;
 
   @override
   void initState() {
@@ -62,8 +57,8 @@ class _FireMapState extends State<FireMap> {
             onMapCreated: _onMapCreated,
             myLocationEnabled: true,
             mapType: MapType.hybrid,
-            markers: markers,
-            polygons: _getPolygons(),
+            polygons: polygons,
+            onTap: addingPolygon ? _addPolygonPoint : null,
           )
         else
           Container(),
@@ -71,7 +66,7 @@ class _FireMapState extends State<FireMap> {
           bottom: 50,
           left: 10,
           child: FloatingActionButton(
-            onPressed: _addGeoPoint,
+            onPressed: _addPolygon,
             child: const Icon(Icons.add),
           ),
         ),
@@ -85,20 +80,39 @@ class _FireMapState extends State<FireMap> {
         ),
         Positioned(
           bottom: 50,
-          right: 100,
-          child: Slider(
-            activeColor: Colors.green,
-            inactiveColor: Colors.green.withOpacity(0.2),
-            divisions: 4,
-            value: radius.value,
-            onChanged: _updateQuery,
-            min: 1,
-            max: 20,
-            label: 'Radius ${radius.value}km',
+          left: 130,
+          child: FloatingActionButton(
+            onPressed: _resetPolygon,
+            child: const Icon(Icons.refresh),
+          ),
+        ),
+        Positioned(
+          bottom: 50,
+          left: 200,
+          child: FloatingActionButton(
+            onPressed: _addPolygonToFirestore,
+            child: const Icon(Icons.check),
           ),
         ),
       ],
     );
+  }
+
+  void _addPolygonPoint(LatLng latLng) {
+    setState(() {
+      polygons = {
+        polygons.first.copyWith(
+          pointsParam: List.from(polygons.first.points)..add(latLng),
+        ),
+      };
+    });
+  }
+
+  void _addPolygon() {
+    setState(() {
+      addingPolygon = true;
+      polygons.add(const Polygon(polygonId: PolygonId('polygon-1')));
+    });
   }
 
   Future<void> _getUserLocation() async {
@@ -111,96 +125,9 @@ class _FireMapState extends State<FireMap> {
   }
 
   void _onMapCreated(GoogleMapController controller) {
-    location.onLocationChanged.listen(
-      (locationData) {
-        final userLocation = LatLng(
-          locationData.latitude!,
-          locationData.longitude!,
-        );
-        mapController!.animateCamera(
-          CameraUpdate.newCameraPosition(
-            CameraPosition(
-              target: userLocation,
-              zoom: 15,
-            ),
-          ),
-        );
-      },
-    );
-
-    _startQuery();
-
     setState(() {
       mapController = controller;
     });
-  }
-
-  Future<DocumentReference> _addGeoPoint() async {
-    final random = Random();
-    final position = await mapController!.getLatLng(
-      ScreenCoordinate(
-        x: random.nextInt(1000),
-        y: random.nextInt(1000),
-      ),
-    );
-    final point = geo.point(
-      latitude: position.latitude,
-      longitude: position.longitude,
-    );
-    return firestore.collection('locations').add(<String, dynamic>{
-      'point': point.data,
-      'name': 'Yay I can be queried',
-    });
-  }
-
-  void _updateMarkers(List<DocumentSnapshot<Map<String, dynamic>>> documents) {
-    setState(() {
-      markers = documents
-          .map(
-            (document) => Marker(
-              markerId: MarkerId(document.id),
-              position: LatLng(
-                // ignore: avoid_dynamic_calls
-                document.data()!['point']['geopoint'].latitude as double,
-                // ignore: avoid_dynamic_calls
-                document.data()!['point']['geopoint'].longitude as double,
-              ),
-              infoWindow: InfoWindow(
-                title: document.data()!['name'] as String,
-              ),
-            ),
-          )
-          .toSet();
-    });
-  }
-
-  Future<void> _startQuery() async {
-    final position = await location.getLocation();
-
-    final ref = firestore.collection('locations');
-
-    final center = geo.point(
-      latitude: position.latitude!,
-      longitude: position.longitude!,
-    );
-
-    subscription = radius.switchMap((rad) {
-      return geo
-          .collection(collectionRef: ref)
-          .within(center: center, radius: rad, field: 'point');
-    }).listen(_updateMarkers);
-  }
-
-  void _updateQuery(double value) {
-    setState(() {
-      radius.add(value);
-    });
-  }
-
-  @override
-  void dispose() {
-    subscription.cancel();
-    super.dispose();
   }
 
   void _removeAllMarkers() {
@@ -213,20 +140,20 @@ class _FireMapState extends State<FireMap> {
     });
   }
 
-  Set<Polygon> _getPolygons() {
-    return <Polygon>{
-      Polygon(
-        polygonId: const PolygonId('polygon'),
-        points: <LatLng>[
-          LatLng(latitude!, longitude!),
-          LatLng(latitude! + 0.001, longitude!),
-          LatLng(latitude! + 0.001, longitude! + 0.001),
-          LatLng(latitude!, longitude! + 0.001),
-        ],
-        strokeColor: Colors.green,
-        strokeWidth: 5,
-        fillColor: Colors.green.withOpacity(0.2),
-      ),
-    };
+  void _resetPolygon() {
+    setState(() {
+      polygons = <Polygon>{};
+    });
+  }
+
+  void _addPolygonToFirestore() {
+    final ref = firestore.collection('polygons');
+
+    final polygonPoints = polygons.first.points;
+
+    final polygon = geo.point(
+      latitude: polygonPoints.first.latitude,
+      longitude: polygonPoints.first.longitude,
+    );
   }
 }
