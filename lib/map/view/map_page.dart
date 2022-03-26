@@ -28,18 +28,30 @@ class _FireMapState extends State<FireMap> {
   GoogleMapController? mapController;
   Location location = Location();
   Set<Polygon> polygons = <Polygon>{};
-
-  FirebaseFirestore firestore = FirebaseFirestore.instance;
-  Geoflutterfire geo = Geoflutterfire();
+  Set<Polyline> polylines = <Polyline>{};
 
   double? latitude;
   double? longitude;
 
-  bool addingPolygon = false;
+  bool addingPolyline = false;
+
+  late Stream<List<DocumentSnapshot>> stream;
+  late Geoflutterfire geo;
+  late FirebaseFirestore firestore;
+
+  Future<BitmapDescriptor> get markerIcon {
+    return BitmapDescriptor.fromAssetImage(
+      const ImageConfiguration(size: Size(48, 48)),
+      'assets/marker_circle.png',
+    );
+  }
 
   @override
   void initState() {
+    geo = Geoflutterfire();
+    firestore = FirebaseFirestore.instance;
     _getUserLocation();
+    _getPolygons();
 
     super.initState();
   }
@@ -57,8 +69,9 @@ class _FireMapState extends State<FireMap> {
             onMapCreated: _onMapCreated,
             myLocationEnabled: true,
             mapType: MapType.hybrid,
+            polylines: polylines,
             polygons: polygons,
-            onTap: addingPolygon ? _addPolygonPoint : null,
+            onTap: addingPolyline ? _addPolylinePoint : null,
           )
         else
           Container(),
@@ -66,7 +79,7 @@ class _FireMapState extends State<FireMap> {
           bottom: 50,
           left: 10,
           child: FloatingActionButton(
-            onPressed: _addPolygon,
+            onPressed: _addPolyline,
             child: const Icon(Icons.add),
           ),
         ),
@@ -82,13 +95,13 @@ class _FireMapState extends State<FireMap> {
           bottom: 50,
           left: 130,
           child: FloatingActionButton(
-            onPressed: _resetPolygon,
+            onPressed: _resetPolyline,
             child: const Icon(Icons.refresh),
           ),
         ),
         Positioned(
           bottom: 50,
-          left: 200,
+          left: 190,
           child: FloatingActionButton(
             onPressed: _addPolygonToFirestore,
             child: const Icon(Icons.check),
@@ -98,20 +111,26 @@ class _FireMapState extends State<FireMap> {
     );
   }
 
-  void _addPolygonPoint(LatLng latLng) {
+  void _addPolylinePoint(LatLng latLng) {
     setState(() {
-      polygons = {
-        polygons.first.copyWith(
-          pointsParam: List.from(polygons.first.points)..add(latLng),
+      polylines = {
+        polylines.first.copyWith(
+          pointsParam: List.from(polylines.first.points)..add(latLng),
         ),
       };
     });
   }
 
-  void _addPolygon() {
+  void _addPolyline() {
     setState(() {
-      addingPolygon = true;
-      polygons.add(const Polygon(polygonId: PolygonId('polygon-1')));
+      addingPolyline = true;
+      polylines.add(
+        const Polyline(
+          polylineId: PolylineId('polyline-1'),
+          width: 3,
+          color: Colors.blue,
+        ),
+      );
     });
   }
 
@@ -130,30 +149,97 @@ class _FireMapState extends State<FireMap> {
     });
   }
 
-  void _removeAllMarkers() {
-    final ref = firestore.collection('locations');
+  Future<void> _removeAllMarkers() async {}
 
-    ref.get().then((snapshot) {
-      for (final doc in snapshot.docs) {
-        doc.reference.delete();
-      }
+  void _addPolygon() {
+    final polygon = Polygon(
+      polygonId: const PolygonId('polygon-1'),
+      points: polylines.first.points,
+      strokeWidth: 3,
+      fillColor: Colors.green.withOpacity(0.2),
+      strokeColor: Colors.green,
+    );
+    setState(() {
+      polylines = {};
+      polygons = {polygon};
     });
   }
 
-  void _resetPolygon() {
+  void _resetPolyline() {
     setState(() {
+      polylines = <Polyline>{};
       polygons = <Polygon>{};
     });
   }
 
-  void _addPolygonToFirestore() {
+  Future<void> _addPolygonToFirestore() async {
+    _addPolygon();
+
     final ref = firestore.collection('polygons');
 
-    final polygonPoints = polygons.first.points;
+    final geoRef = geo.collection(collectionRef: ref);
 
-    final polygon = geo.point(
-      latitude: polygonPoints.first.latitude,
-      longitude: polygonPoints.first.longitude,
-    );
+    final toAddPolygon = polygons.first;
+
+    var order = 0;
+    for (final point in toAddPolygon.points) {
+      final pointLatLng = LatLng(point.latitude, point.longitude);
+      final pointGeoPoint = geo.point(
+        latitude: pointLatLng.latitude,
+        longitude: pointLatLng.longitude,
+      );
+
+      await geoRef.add(<String, dynamic>{
+        'order': order,
+        'polygonId': 'polygon-1',
+        'point': pointGeoPoint.data,
+      });
+
+      order += 1;
+    }
+  }
+
+  Future<void> _getPolygons() async {
+    final queryRef = firestore
+        .collection('polygons')
+        .where(
+          'polygonId',
+          isEqualTo: 'polygon-1',
+        )
+        .orderBy('order');
+    final center = GeoFirePoint(40.51287558, -104.95347124);
+    final stream = geo.collection(collectionRef: queryRef).within(
+          center: center,
+          radius: 1000,
+          field: 'point',
+        );
+
+    await queryRef.get().then((value) => print(value.docs.length));
+
+    await stream.forEach((snapshot) {
+      print(snapshot.length);
+      var polygonPoints = <LatLng>[];
+      snapshot.forEach((doc) {
+        print(doc.data());
+        final geoFirePoint = doc.data()!['point']['geopoint'] as GeoPoint;
+        polygonPoints.add(
+          LatLng(
+            geoFirePoint.latitude,
+            geoFirePoint.longitude,
+          ),
+        );
+      });
+      setState(() {
+        polygons = {
+          Polygon(
+            polygonId: const PolygonId('polygon-1'),
+            points: polygonPoints,
+            strokeWidth: 3,
+            fillColor: Colors.green.withOpacity(0.2),
+            strokeColor: Colors.green,
+          ),
+        };
+      });
+    });
   }
 }
